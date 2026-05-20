@@ -10,532 +10,975 @@
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
-  :root {
-    --bg:#07080f; --surface:#0f1018; --card:#161720; --border:#22242f;
-    --accent:#6366f1; --accent2:#f59e0b; --text:#e8e8f0; --muted:#5a5a70;
-    --green:#10b981; --red:#f43f5e; --blue:#3b82f6;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; }
+:root{
+  --bg:#07080f;--surface:#0f1018;--card:#161720;--border:#22242f;
+  --accent:#6366f1;--accent2:#f59e0b;--text:#e8e8f0;--muted:#5a5a70;
+  --green:#10b981;--red:#f43f5e;--blue:#3b82f6;--orange:#f97316;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
 
-  /* LOGIN */
-  #login-screen {
-    min-height:100vh; display:flex; align-items:center; justify-content:center;
-    background:radial-gradient(ellipse at 50% 0%, rgba(99,102,241,.15) 0%, transparent 60%);
-  }
-  .login-box { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:2.5rem; width:100%; max-width:400px; }
-  .login-box h1 { font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:800; margin-bottom:.3rem; }
-  .login-box h1 span { color:var(--accent); }
-  .login-box p { color:var(--muted); font-size:.88rem; margin-bottom:2rem; }
-  .form-group { margin-bottom:1.1rem; }
-  label { display:block; font-size:.8rem; color:var(--muted); font-weight:500; margin-bottom:.4rem; letter-spacing:.3px; }
-  input { width:100%; padding:.75rem 1rem; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:.9rem; outline:none; transition:border .2s; }
-  input:focus { border-color:var(--accent); }
-  input::placeholder { color:var(--muted); }
-  .btn { padding:.7rem 1.4rem; border-radius:9px; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:.9rem; font-weight:500; transition:all .2s; }
-  .btn-primary { background:var(--accent); color:#fff; }
-  .btn-primary:hover { background:#4f46e5; }
-  .btn-block { width:100%; padding:.85rem; font-size:.95rem; margin-top:.5rem; }
-  .alert { padding:.75rem 1rem; border-radius:8px; font-size:.84rem; margin-bottom:1rem; }
-  .alert-error { background:rgba(244,63,94,.1); border:1px solid rgba(244,63,94,.3); color:#fda4af; }
-  .alert-success { background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.3); color:#6ee7b7; }
-  .alert-info { background:rgba(99,102,241,.1); border:1px solid rgba(99,102,241,.3); color:#a5b4fc; }
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 0%,rgba(99,102,241,.12) 0%,transparent 65%);}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2.5rem;width:100%;max-width:400px;}
+.login-logo{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:.2rem;}
+.login-logo span{color:var(--accent);}
+.login-sub{color:var(--muted);font-size:.85rem;margin-bottom:2rem;font-family:'DM Mono',monospace;}
 
-  /* SHELL */
-  #app { display:none; height:100vh; overflow:hidden; }
-  #app.visible { display:flex; }
-  .sidebar {
-    width:240px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--border);
-    display:flex; flex-direction:column; padding:1.5rem 0;
-  }
-  .sidebar-logo { padding:0 1.5rem 1.5rem; border-bottom:1px solid var(--border); margin-bottom:1rem; }
-  .sidebar-logo .logo-text { font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:800; }
-  .sidebar-logo .logo-text span { color:var(--accent); }
-  .sidebar-logo .logo-sub { font-size:.72rem; color:var(--muted); margin-top:.15rem; font-family:'DM Mono',monospace; }
-  .nav-item {
-    display:flex; align-items:center; gap:.75rem; padding:.75rem 1.5rem;
-    color:var(--muted); font-size:.88rem; cursor:pointer; transition:all .15s;
-    border-left:3px solid transparent; text-decoration:none;
-  }
-  .nav-item:hover { color:var(--text); background:rgba(255,255,255,.03); }
-  .nav-item.active { color:var(--accent); background:rgba(99,102,241,.08); border-left-color:var(--accent); }
-  .nav-icon { font-size:1rem; width:20px; text-align:center; }
-  .nav-badge { margin-left:auto; background:var(--red); color:#fff; font-size:.7rem; padding:.1rem .45rem; border-radius:10px; font-weight:600; }
-  .sidebar-footer { margin-top:auto; padding:1rem 1.5rem; border-top:1px solid var(--border); }
-  .admin-pill { display:flex; align-items:center; gap:.6rem; }
-  .admin-avatar { width:30px; height:30px; border-radius:8px; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; }
-  .admin-name { font-size:.82rem; font-weight:500; }
-  .admin-role { font-size:.72rem; color:var(--muted); }
-  .logout-btn { margin-left:auto; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1rem; }
-  .logout-btn:hover { color:var(--red); }
+/* INPUTS */
+.fg{margin-bottom:1.1rem;}
+label{display:block;font-size:.78rem;color:var(--muted);font-weight:500;margin-bottom:.4rem;letter-spacing:.4px;text-transform:uppercase;}
+input,select,textarea{width:100%;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+input::placeholder,textarea::placeholder{color:var(--muted);}
+select option{background:var(--card);}
+textarea{resize:vertical;min-height:80px;}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
 
-  /* MAIN */
-  .main { flex:1; overflow-y:auto; }
-  .panel { display:none; padding:2rem; }
-  .panel.active { display:block; }
-  .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:2rem; }
-  .page-header h1 { font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; }
-  .page-header p { color:var(--muted); font-size:.88rem; margin-top:.2rem; }
+/* BUTTONS */
+.btn{padding:.65rem 1.3rem;border-radius:9px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;transition:all .18s;display:inline-flex;align-items:center;gap:.4rem;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#4f46e5;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:#059669;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-red:hover{background:#e11d48;}
+.btn-orange{background:var(--orange);color:#fff;}
+.btn-orange:hover{background:#ea580c;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-block{width:100%;padding:.85rem;font-size:.95rem;justify-content:center;}
+.btn-xs{padding:.28rem .65rem;font-size:.75rem;border-radius:6px;font-weight:600;}
 
-  /* STATS ROW */
-  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:2rem; }
-  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.4rem; }
-  .stat-card-label { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; font-weight:500; }
-  .stat-card-value { font-family:'Syne',sans-serif; font-size:2.2rem; font-weight:800; margin-top:.3rem; }
-  .stat-card-sub { font-size:.78rem; color:var(--muted); margin-top:.2rem; }
+/* ALERTS */
+.alert{padding:.75rem 1rem;border-radius:8px;font-size:.84rem;margin-bottom:1rem;}
+.al-error{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.3);color:#fda4af;}
+.al-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;}
+.al-info{background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);color:#a5b4fc;}
 
-  /* TABLES */
-  .section-card { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:1.5rem; }
-  .section-head { padding:1.2rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
-  .section-head h2 { font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; }
-  table { width:100%; border-collapse:collapse; }
-  th { padding:.8rem 1.5rem; text-align:left; font-size:.75rem; color:var(--muted); font-weight:600; letter-spacing:.5px; text-transform:uppercase; border-bottom:1px solid var(--border); }
-  td { padding:1rem 1.5rem; font-size:.88rem; border-bottom:1px solid var(--border); }
-  tr:last-child td { border-bottom:none; }
-  tr:hover td { background:rgba(255,255,255,.02); }
-  .badge { padding:.25rem .65rem; border-radius:20px; font-size:.74rem; font-weight:600; white-space:nowrap; }
-  .badge-pending { background:rgba(245,158,11,.12); color:var(--accent2); border:1px solid rgba(245,158,11,.25); }
-  .badge-active { background:rgba(16,185,129,.12); color:var(--green); border:1px solid rgba(16,185,129,.25); }
-  .badge-suspended { background:rgba(244,63,94,.12); color:var(--red); border:1px solid rgba(244,63,94,.25); }
-  .badge-ready { background:rgba(59,130,246,.12); color:var(--blue); border:1px solid rgba(59,130,246,.25); }
-  .badge-assigned { background:rgba(99,102,241,.12); color:var(--accent); border:1px solid rgba(99,102,241,.25); }
-  .badge-delivered { background:rgba(16,185,129,.12); color:var(--green); border:1px solid rgba(16,185,129,.25); }
-  .action-btns { display:flex; gap:.4rem; }
-  .btn-xs { padding:.3rem .7rem; font-size:.76rem; border-radius:6px; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:600; }
-  .btn-approve { background:var(--green); color:#fff; }
-  .btn-approve:hover { background:#059669; }
-  .btn-suspend { background:rgba(244,63,94,.15); color:var(--red); border:1px solid rgba(244,63,94,.3); }
-  .btn-suspend:hover { background:var(--red); color:#fff; }
-  .btn-assign { background:var(--accent); color:#fff; }
-  .btn-assign:hover { background:#4f46e5; }
+/* SHELL */
+#app{display:none;height:100vh;overflow:hidden;}
+#app.on{display:flex;}
+.sidebar{width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:1.2rem 0;}
+.s-logo{padding:0 1.4rem 1.2rem;border-bottom:1px solid var(--border);margin-bottom:.8rem;}
+.s-logo-text{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;}
+.s-logo-text span{color:var(--accent);}
+.s-logo-sub{font-size:.68rem;color:var(--muted);margin-top:.1rem;font-family:'DM Mono',monospace;}
+.nav-item{display:flex;align-items:center;gap:.7rem;padding:.7rem 1.4rem;color:var(--muted);font-size:.86rem;cursor:pointer;transition:all .15s;border-left:3px solid transparent;}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.nav-item.active{color:var(--accent);background:rgba(99,102,241,.08);border-left-color:var(--accent);}
+.ni-icon{font-size:.95rem;width:18px;text-align:center;}
+.ni-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.68rem;padding:.1rem .4rem;border-radius:8px;font-weight:700;min-width:18px;text-align:center;}
+.s-footer{margin-top:auto;padding:1rem 1.4rem;border-top:1px solid var(--border);}
+.s-admin{display:flex;align-items:center;gap:.6rem;}
+.s-av{width:28px;height:28px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;}
+.s-name{font-size:.8rem;font-weight:500;line-height:1.2;}
+.s-role{font-size:.7rem;color:var(--muted);}
+.s-logout{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:.2rem;}
+.s-logout:hover{color:var(--red);}
 
-  /* MAP PANEL */
-  #map-container { height:calc(100vh - 120px); border-radius:14px; overflow:hidden; border:1px solid var(--border); }
+/* MAIN */
+.main{flex:1;overflow-y:auto;}
+.panel{display:none;padding:1.8rem 2rem;}
+.panel.active{display:block;}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.8rem;flex-wrap:gap;}
+.ph h1{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;}
+.ph p{color:var(--muted);font-size:.83rem;margin-top:.15rem;}
+.ph-actions{display:flex;gap:.6rem;align-items:center;flex-shrink:0;}
 
-  /* ASSIGN MODAL */
-  .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:999; backdrop-filter:blur(6px); align-items:center; justify-content:center; }
-  .overlay.open { display:flex; }
-  .modal-box { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:2rem; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; position:relative; }
-  .modal-box h2 { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:1rem; }
-  .runner-option { display:flex; align-items:center; gap:.8rem; padding:.9rem; background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:.6rem; cursor:pointer; transition:all .2s; }
-  .runner-option:hover { border-color:var(--accent); background:rgba(99,102,241,.06); }
-  .runner-option.selected { border-color:var(--accent); background:rgba(99,102,241,.1); }
-  .runner-dot { width:10px; height:10px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); }
-  .runner-info { flex:1; }
-  .runner-name { font-weight:500; font-size:.9rem; }
-  .runner-meta { font-size:.77rem; color:var(--muted); margin-top:.15rem; }
-  .runner-dist { font-family:'DM Mono',monospace; font-size:.8rem; color:var(--accent2); }
+/* STAT CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem;margin-bottom:1.8rem;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:1.2rem;}
+.sc-label{font-size:.73rem;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:500;}
+.sc-val{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;margin-top:.25rem;}
+.sc-sub{font-size:.76rem;color:var(--muted);margin-top:.15rem;}
 
-  /* SPINNER */
-  .spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; margin:3rem auto; }
-  @keyframes spin { to{transform:rotate(360deg)} }
-  .empty { text-align:center; padding:3rem; color:var(--muted); font-size:.9rem; }
+/* SECTION CARD */
+.sec{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:1.4rem;}
+.sec-head{padding:1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sec-head h2{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;}
+.sec-link{font-size:.8rem;color:var(--accent);cursor:pointer;background:none;border:none;}
 
-  select { background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:.5rem .8rem; font-family:'DM Sans',sans-serif; font-size:.85rem; outline:none; cursor:pointer; }
-  select:focus { border-color:var(--accent); }
-  select option { background:var(--card); }
+/* TABLE */
+table{width:100%;border-collapse:collapse;}
+th{padding:.7rem 1.2rem;text-align:left;font-size:.72rem;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+td{padding:.85rem 1.2rem;font-size:.85rem;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.015);}
+.td-main{font-weight:500;}
+.td-sub{font-size:.74rem;color:var(--muted);margin-top:.15rem;}
+
+/* BADGES */
+.badge{padding:.22rem .6rem;border-radius:20px;font-size:.72rem;font-weight:600;white-space:nowrap;}
+.b-pending{background:rgba(245,158,11,.12);color:var(--accent2);border:1px solid rgba(245,158,11,.25);}
+.b-active{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.25);}
+.b-suspended{background:rgba(249,115,22,.12);color:var(--orange);border:1px solid rgba(249,115,22,.25);}
+.b-banned{background:rgba(244,63,94,.12);color:var(--red);border:1px solid rgba(244,63,94,.25);}
+.b-ready{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.25);}
+.b-picked{background:rgba(99,102,241,.12);color:var(--accent);border:1px solid rgba(99,102,241,.25);}
+.b-delivered{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.25);}
+.b-paid{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.25);}
+.b-unpaid{background:rgba(245,158,11,.12);color:var(--accent2);border:1px solid rgba(245,158,11,.25);}
+
+.action-btns{display:flex;gap:.35rem;flex-wrap:wrap;}
+
+/* MAP */
+#admin-map{height:calc(100vh - 160px);border-radius:12px;overflow:hidden;border:1px solid var(--border);}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:999;backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:1rem;}
+.overlay.open{display:flex;}
+.mbox{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:2rem;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;position:relative;}
+.mbox h2{font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;margin-bottom:1.2rem;}
+.mbox-close{position:absolute;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;}
+.confirm-box{text-align:center;padding:1rem 0;}
+.confirm-box .ci{font-size:3rem;margin-bottom:.8rem;}
+.confirm-box p{color:var(--muted);font-size:.9rem;margin-bottom:1.5rem;line-height:1.6;}
+.confirm-btns{display:flex;gap:.8rem;justify-content:center;}
+
+/* RUNNER OPTION */
+.runner-opt{display:flex;align-items:center;gap:.8rem;padding:.85rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:.55rem;cursor:pointer;transition:all .18s;}
+.runner-opt:hover,.runner-opt.sel{border-color:var(--accent);background:rgba(99,102,241,.07);}
+.r-dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);flex-shrink:0;}
+.r-info{flex:1;}
+.r-name{font-weight:500;font-size:.88rem;}
+.r-meta{font-size:.75rem;color:var(--muted);margin-top:.12rem;}
+
+/* PAYMENT PANEL */
+.pay-week-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:.8rem;}
+.pwc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;}
+.pwc-label{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;}
+.pwc-total{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:var(--green);}
+.pwc-runners{font-size:.8rem;color:var(--muted);}
+
+.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin:2.5rem auto;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:2.5rem;color:var(--muted);font-size:.88rem;}
+
+/* SEARCH */
+.search-bar{display:flex;gap:.6rem;margin-bottom:1rem;}
+.search-bar input{flex:1;padding:.6rem .9rem;font-size:.85rem;}
+.search-bar select{width:auto;padding:.6rem .9rem;font-size:.85rem;}
+
+/* TABS */
+.tabs{display:flex;gap:.4rem;border-bottom:1px solid var(--border);margin-bottom:1.2rem;}
+.tab{padding:.6rem 1.1rem;font-size:.84rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.dot-live{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.4s infinite;display:inline-block;margin-right:.4rem;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
-    <h1>Swift<span>Run</span></h1>
-    <p>Admin Control Panel — restricted access</p>
-    <div id="login-alert"></div>
-    <div class="form-group">
-      <label>Admin Email</label>
-      <input type="email" id="admin-email" placeholder="admin@swiftrun.com"/>
-    </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"/>
-    </div>
+    <div class="login-logo">Swift<span>Run</span></div>
+    <div class="login-sub">// admin control panel</div>
+    <div id="la"></div>
+    <div class="fg"><label>Email</label><input type="email" id="ae" placeholder="admin@swiftrun.com" onkeydown="if(event.key==='Enter')adminLogin()"/></div>
+    <div class="fg"><label>Password</label><input type="password" id="ap" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()"/></div>
     <button class="btn btn-primary btn-block" onclick="adminLogin()">Access Dashboard</button>
   </div>
 </div>
 
-<!-- MAIN APP -->
+<!-- APP SHELL -->
 <div id="app">
   <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-text">Swift<span>Run</span></div>
-      <div class="logo-sub">// admin panel</div>
+    <div class="s-logo">
+      <div class="s-logo-text">Swift<span>Run</span></div>
+      <div class="s-logo-sub">// admin panel · campus plug</div>
     </div>
     <nav>
-      <div class="nav-item active" onclick="showPanel('overview')" data-panel="overview"><span class="nav-icon">📊</span> Overview</div>
-      <div class="nav-item" onclick="showPanel('runners')" data-panel="runners"><span class="nav-icon">🧑‍💼</span> Runners <span class="nav-badge" id="pending-badge">0</span></div>
-      <div class="nav-item" onclick="showPanel('orders')" data-panel="orders"><span class="nav-icon">📦</span> Orders</div>
-      <div class="nav-item" onclick="showPanel('map')" data-panel="map"><span class="nav-icon">🗺️</span> Live Map</div>
+      <div class="nav-item active" onclick="showPanel('overview')" data-panel="overview"><span class="ni-icon">📊</span>Overview</div>
+      <div class="nav-item" onclick="showPanel('runners')" data-panel="runners"><span class="ni-icon">🧑‍💼</span>Runners<span class="ni-badge" id="pending-badge" style="display:none">0</span></div>
+      <div class="nav-item" onclick="showPanel('orders')" data-panel="orders"><span class="ni-icon">📦</span>Orders</div>
+      <div class="nav-item" onclick="showPanel('payments')" data-panel="payments"><span class="ni-icon">💰</span>Payments</div>
+      <div class="nav-item" onclick="showPanel('map')" data-panel="map"><span class="ni-icon">🗺️</span>Live Map</div>
     </nav>
-    <div class="sidebar-footer">
-      <div class="admin-pill">
-        <div class="admin-avatar">A</div>
-        <div>
-          <div class="admin-name">Admin</div>
-          <div class="admin-role">Super Admin</div>
-        </div>
-        <button class="logout-btn" onclick="adminLogout()" title="Logout">⏻</button>
+    <div class="s-footer">
+      <div class="s-admin">
+        <div class="s-av">A</div>
+        <div><div class="s-name" id="admin-name-display">Admin</div><div class="s-role">Super Admin</div></div>
+        <button class="s-logout" onclick="adminLogout()" title="Logout">⏻</button>
       </div>
     </div>
   </aside>
 
   <main class="main">
+
     <!-- OVERVIEW -->
     <div class="panel active" id="panel-overview">
-      <div class="page-header">
-        <div><h1>Overview</h1><p>Real-time platform summary</p></div>
-        <button class="btn btn-primary" onclick="loadAll()" style="font-size:.82rem;padding:.5rem 1rem">↻ Refresh</button>
+      <div class="ph">
+        <div><h1>Overview</h1><p>Platform snapshot — Campus Plug delivery network</p></div>
+        <div class="ph-actions"><button class="btn btn-ghost" onclick="loadAll()">↻ Refresh</button></div>
       </div>
       <div class="stats-row">
-        <div class="stat-card"><div class="stat-card-label">Total Runners</div><div class="stat-card-value" id="stat-runners">—</div><div class="stat-card-sub">Registered</div></div>
-        <div class="stat-card"><div class="stat-card-label">Pending Review</div><div class="stat-card-value" id="stat-pending" style="color:var(--accent2)">—</div><div class="stat-card-sub">Awaiting approval</div></div>
-        <div class="stat-card"><div class="stat-card-label">Active Orders</div><div class="stat-card-value" id="stat-orders" style="color:var(--blue)">—</div><div class="stat-card-sub">In progress</div></div>
-        <div class="stat-card"><div class="stat-card-label">Delivered Today</div><div class="stat-card-value" id="stat-delivered" style="color:var(--green)">—</div><div class="stat-card-sub">Completed deliveries</div></div>
+        <div class="sc"><div class="sc-label">Total Runners</div><div class="sc-val" id="st-total">—</div><div class="sc-sub">Registered</div></div>
+        <div class="sc"><div class="sc-label">Pending Approval</div><div class="sc-val" id="st-pending" style="color:var(--accent2)">—</div><div class="sc-sub">Awaiting review</div></div>
+        <div class="sc"><div class="sc-label">Active Orders</div><div class="sc-val" id="st-orders" style="color:var(--blue)">—</div><div class="sc-sub">In transit now</div></div>
+        <div class="sc"><div class="sc-label">Unpaid Balance</div><div class="sc-val" id="st-unpaid" style="color:var(--green)">—</div><div class="sc-sub">Owed to runners</div></div>
       </div>
-      <div class="section-card">
-        <div class="section-head"><h2>⚡ Recent Applications</h2><a onclick="showPanel('runners')" style="font-size:.82rem;color:var(--accent);cursor:pointer">View all →</a></div>
-        <table><thead><tr><th>Runner</th><th>City</th><th>Transport</th><th>Applied</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody id="recent-applications"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody></table>
+      <div class="sec">
+        <div class="sec-head"><h2>⏳ Pending Applications</h2><button class="sec-link" onclick="showPanel('runners');setFilter('pending')">View all →</button></div>
+        <table><thead><tr><th>Runner</th><th>University</th><th>Level</th><th>Transport</th><th>Applied</th><th>Actions</th></tr></thead>
+        <tbody id="ov-pending"></tbody></table>
+      </div>
+      <div class="sec">
+        <div class="sec-head"><h2>📦 Recent Orders</h2><button class="sec-link" onclick="showPanel('orders')">View all →</button></div>
+        <table><thead><tr><th>Order</th><th>Seller</th><th>Runner</th><th>Pay</th><th>Status</th></tr></thead>
+        <tbody id="ov-orders"></tbody></table>
       </div>
     </div>
 
     <!-- RUNNERS -->
     <div class="panel" id="panel-runners">
-      <div class="page-header">
-        <div><h1>Runner Management</h1><p>Approve applications and manage runner accounts</p></div>
-        <select onchange="filterRunners(this.value)" id="runner-filter">
-          <option value="all">All Runners</option>
-          <option value="pending">Pending</option>
-          <option value="active">Active</option>
-          <option value="suspended">Suspended</option>
-        </select>
+      <div class="ph">
+        <div><h1>Runner Management</h1><p>Approve, restrict, ban or remove runner accounts</p></div>
+        <div class="ph-actions">
+          <select id="runner-filter" onchange="applyRunnerFilter()">
+            <option value="all">All Runners</option>
+            <option value="pending">Pending</option>
+            <option value="active">Active</option>
+            <option value="suspended">Restricted</option>
+            <option value="banned">Banned</option>
+          </select>
+          <input id="runner-search" placeholder="🔍 Search name / university..." style="width:220px" oninput="applyRunnerFilter()"/>
+        </div>
       </div>
-      <div class="section-card">
+      <div class="sec">
         <table>
-          <thead><tr><th>Name</th><th>Contact</th><th>City</th><th>Transport</th><th>Deliveries</th><th>Earnings</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="runners-table"><tr><td colspan="8" class="empty">Loading...</td></tr></tbody>
+          <thead><tr><th>Runner</th><th>University</th><th>Contact</th><th>Transport</th><th>Deliveries</th><th>Earned</th><th>Unpaid</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="runners-table"></tbody>
         </table>
       </div>
     </div>
 
     <!-- ORDERS -->
     <div class="panel" id="panel-orders">
-      <div class="page-header">
-        <div><h1>Order Management</h1><p>Assign runners to ready orders</p></div>
-        <select onchange="filterOrders(this.value)" id="order-filter">
-          <option value="all">All Orders</option>
-          <option value="ready">Ready (Unassigned)</option>
-          <option value="picked_up">In Transit</option>
-          <option value="delivered">Delivered</option>
-        </select>
+      <div class="ph">
+        <div><h1>Order Management</h1><p>Create orders, assign runners, track deliveries</p></div>
+        <div class="ph-actions">
+          <select id="order-filter" onchange="applyOrderFilter()">
+            <option value="all">All Orders</option>
+            <option value="ready">Ready (Unassigned)</option>
+            <option value="picked_up">In Transit</option>
+            <option value="delivered">Delivered</option>
+          </select>
+          <button class="btn btn-primary" onclick="openCreateOrder()">+ Create Order</button>
+        </div>
       </div>
-      <div class="section-card">
+      <div class="sec">
         <table>
-          <thead><tr><th>Order</th><th>Seller</th><th>Delivery To</th><th>Pay</th><th>Runner</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="orders-table"><tr><td colspan="7" class="empty">Loading...</td></tr></tbody>
+          <thead><tr><th>Order</th><th>Seller</th><th>Deliver To</th><th>Runner Pay</th><th>Runner</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody id="orders-table"></tbody>
         </table>
       </div>
     </div>
 
+    <!-- PAYMENTS -->
+    <div class="panel" id="panel-payments">
+      <div class="ph">
+        <div><h1>Weekly Payments</h1><p>Mark runners as paid for the week</p></div>
+        <div class="ph-actions">
+          <button class="btn btn-primary" onclick="openPayWeek()">💰 Pay Week</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="showPayTab('unpaid',this)">Unpaid</div>
+        <div class="tab" onclick="showPayTab('paid',this)">Payment History</div>
+      </div>
+      <div id="pay-content"></div>
+    </div>
+
     <!-- MAP -->
     <div class="panel" id="panel-map">
-      <div class="page-header">
-        <div><h1>Live Runner Map</h1><p>Real-time locations of all active runners</p></div>
-        <button class="btn btn-primary" onclick="refreshMap()" style="font-size:.82rem;padding:.5rem 1rem">↻ Refresh</button>
+      <div class="ph">
+        <div><h1><span class="dot-live"></span>Live Runner Map</h1><p>Real-time locations of active runners on campus</p></div>
+        <div class="ph-actions"><button class="btn btn-ghost" onclick="refreshMap()">↻ Refresh</button></div>
       </div>
-      <div id="map-container"></div>
+      <div id="admin-map"></div>
     </div>
+
   </main>
 </div>
 
-<!-- ASSIGN RUNNER MODAL -->
-<div class="overlay" id="assign-overlay">
-  <div class="modal-box">
-    <button class="close-btn" onclick="closeAssign()" style="position:absolute;top:1rem;right:1rem;background:var(--surface);border:1px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:7px;cursor:pointer;font-size:.9rem">✕</button>
+<!-- MODAL: RUNNER DETAILS / ACTIONS -->
+<div class="overlay" id="modal-runner">
+  <div class="mbox" style="max-width:540px">
+    <button class="mbox-close" onclick="closeModal('modal-runner')">✕</button>
+    <h2>Runner Details</h2>
+    <div id="runner-detail-content"></div>
+  </div>
+</div>
+
+<!-- MODAL: CONFIRM ACTION -->
+<div class="overlay" id="modal-confirm">
+  <div class="mbox" style="max-width:400px">
+    <div class="confirm-box">
+      <div class="ci" id="confirm-icon">⚠️</div>
+      <h2 id="confirm-title">Are you sure?</h2>
+      <p id="confirm-msg">This action cannot be undone.</p>
+      <div class="confirm-btns">
+        <button class="btn btn-ghost" onclick="closeModal('modal-confirm')">Cancel</button>
+        <button class="btn" id="confirm-btn" onclick="runConfirm()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ASSIGN RUNNER -->
+<div class="overlay" id="modal-assign">
+  <div class="mbox">
+    <button class="mbox-close" onclick="closeModal('modal-assign')">✕</button>
     <h2>Assign Runner</h2>
-    <p style="color:var(--muted);font-size:.85rem;margin-bottom:1.2rem">Order: <strong id="assign-order-label">—</strong></p>
-    <div id="assign-runners-list"><div class="spinner"></div></div>
-    <button class="btn btn-primary" style="width:100%;margin-top:1rem" onclick="confirmAssign()">Confirm Assignment</button>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:1rem">Order: <strong id="assign-order-label"></strong></p>
+    <div id="assign-list"></div>
+    <button class="btn btn-primary btn-block" style="margin-top:1rem" onclick="confirmAssign()">Confirm Assignment</button>
+  </div>
+</div>
+
+<!-- MODAL: CREATE ORDER -->
+<div class="overlay" id="modal-create-order">
+  <div class="mbox">
+    <button class="mbox-close" onclick="closeModal('modal-create-order')">✕</button>
+    <h2>Create Order</h2>
+    <div id="co-alert"></div>
+    <div class="fg"><label>Order Description</label><input type="text" id="co-desc" placeholder="e.g. 2x Jollof Rice + Chicken"/></div>
+    <div class="fg"><label>Icon (emoji)</label><input type="text" id="co-icon" placeholder="🍛" maxlength="2" style="width:80px"/></div>
+    <div class="fr">
+      <div class="fg"><label>Seller / Vendor Name</label><input type="text" id="co-seller" placeholder="Big Mama Kitchen"/></div>
+      <div class="fg"><label>Seller Address / Location</label><input type="text" id="co-seller-addr" placeholder="Block A Canteen"/></div>
+    </div>
+    <div class="fg"><label>Delivery Address</label><input type="text" id="co-delivery" placeholder="Block C Hostel, Room 204"/></div>
+    <div class="fg"><label>Customer Name</label><input type="text" id="co-customer" placeholder="Amaka Obi"/></div>
+    <div class="fg"><label>Customer Phone</label><input type="text" id="co-customer-phone" placeholder="+234 800 000 0000"/></div>
+    <div class="fr">
+      <div class="fg"><label>Runner Pay (₦)</label><input type="number" id="co-pay" placeholder="1800" min="0"/></div>
+      <div class="fg"><label>Est. Distance (km)</label><input type="number" id="co-km" placeholder="0.5" step="0.1" min="0"/></div>
+    </div>
+    <div class="fg"><label>Est. Time (minutes)</label><input type="number" id="co-mins" placeholder="10" min="1"/></div>
+    <div class="fg">
+      <label>University / Campus</label>
+      <select id="co-university">
+        <option value="">Select campus...</option>
+        <option>Abubakar Tafawa Balewa University, Bauchi</option>
+        <option>Ahmadu Bello University, Zaria</option>
+        <option>Bayero University, Kano</option>
+        <option>Federal University Dutse, Jigawa</option>
+        <option>Federal University Dutsin-Ma, Katsina</option>
+        <option>Federal University Gashua, Yobe</option>
+        <option>Federal University Gusau, Zamfara</option>
+        <option>Federal University Kashere, Gombe</option>
+        <option>Federal University Lafia, Nasarawa</option>
+        <option>Federal University Lokoja, Kogi</option>
+        <option>Federal University Ndufu-Alike, Ebonyi</option>
+        <option>Federal University Otuoke, Bayelsa</option>
+        <option>Federal University Oye-Ekiti, Ekiti</option>
+        <option>Federal University Wukari, Taraba</option>
+        <option>Federal University of Agriculture, Abeokuta</option>
+        <option>Federal University of Agriculture, Makurdi</option>
+        <option>Federal University of Petroleum Resources, Effurun</option>
+        <option>Federal University of Technology, Akure</option>
+        <option>Federal University of Technology, Minna</option>
+        <option>Federal University of Technology, Owerri</option>
+        <option>Michael Okpara University of Agriculture, Umudike</option>
+        <option>Modibbo Adama University, Yola</option>
+        <option>Nnamdi Azikiwe University, Awka</option>
+        <option>Obafemi Awolowo University, Ile-Ife</option>
+        <option>University of Abuja</option>
+        <option>University of Benin</option>
+        <option>University of Calabar</option>
+        <option>University of Ibadan</option>
+        <option>University of Ilorin</option>
+        <option>University of Jos</option>
+        <option>University of Lagos</option>
+        <option>University of Maiduguri</option>
+        <option>University of Nigeria, Nsukka</option>
+        <option>University of Port Harcourt</option>
+        <option>University of Uyo</option>
+        <option>Usmanu Danfodiyo University, Sokoto</option>
+        <option>Adekunle Ajasin University, Akungba-Akoko</option>
+        <option>Ambrose Alli University, Ekpoma</option>
+        <option>Benue State University, Makurdi</option>
+        <option>Delta State University, Abraka</option>
+        <option>Ebonyi State University, Abakaliki</option>
+        <option>Ekiti State University, Ado-Ekiti</option>
+        <option>Enugu State University of Science and Technology</option>
+        <option>Imo State University, Owerri</option>
+        <option>Kaduna State University</option>
+        <option>Kogi State University, Anyigba</option>
+        <option>Kwara State University, Malete</option>
+        <option>Lagos State University</option>
+        <option>Ladoke Akintola University of Technology, Ogbomoso</option>
+        <option>Nasarawa State University, Keffi</option>
+        <option>Niger Delta University, Wilberforce Island</option>
+        <option>Osun State University, Osogbo</option>
+        <option>Plateau State University, Bokkos</option>
+        <option>Rivers State University, Port Harcourt</option>
+        <option>Tai Solarin University of Education, Ijebu Ode</option>
+        <option>Babcock University, Ilishan-Remo</option>
+        <option>Bells University of Technology, Ota</option>
+        <option>Benson Idahosa University, Benin City</option>
+        <option>Bowen University, Iwo</option>
+        <option>Caleb University, Lagos</option>
+        <option>Covenant University, Ota</option>
+        <option>Elizade University, Ilara-Mokin</option>
+        <option>Igbinedion University, Okada</option>
+        <option>Lead City University, Ibadan</option>
+        <option>Madonna University, Okija</option>
+        <option>Mountain Top University, Makogi</option>
+        <option>Nile University of Nigeria, Abuja</option>
+        <option>Pan-Atlantic University, Lagos</option>
+        <option>Redeemer's University, Ede</option>
+        <option>Veritas University, Abuja</option>
+        <option>Yaba College of Technology, Lagos</option>
+        <option>Federal Polytechnic, Ilaro</option>
+        <option>Federal Polytechnic, Nekede</option>
+        <option>Federal Polytechnic, Offa</option>
+        <option>Moshood Abiola Polytechnic, Abeokuta</option>
+      </select>
+    </div>
+    <div class="fg"><label>Assign Runner Now (optional)</label>
+      <select id="co-runner"><option value="">Leave unassigned</option></select>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="createOrder()">Create Order</button>
+  </div>
+</div>
+
+<!-- MODAL: PAY WEEK -->
+<div class="overlay" id="modal-pay-week">
+  <div class="mbox">
+    <button class="mbox-close" onclick="closeModal('modal-pay-week')">✕</button>
+    <h2>Mark Runners Paid</h2>
+    <div id="pw-alert"></div>
+    <div class="fg"><label>Week Label</label><input type="text" id="pw-label" placeholder="e.g. Week of May 19, 2026"/></div>
+    <p style="color:var(--muted);font-size:.84rem;margin-bottom:1rem">Select runners to mark as paid for this week:</p>
+    <div id="pw-runners-list"></div>
+    <button class="btn btn-green btn-block" style="margin-top:1rem" onclick="confirmPayWeek()">✓ Mark Selected as Paid</button>
   </div>
 </div>
 
 <script>
-// ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://zgzamthhfykhjaldosvb.supabase.co';
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://zgzamthhfykhjaldosvb.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_T2qRKGsS33YJPN3BochPTA_r2v_gSlS';
+
+const ADMIN_CREDENTIALS = [
+  { email:'sumudinnovation4@gmail.com',  password:'#123456#Mm' },
+  { email:'opemuhammad35@gmail.com',     password:'#123456#Mm' },
+  { email:'sumudinnovations4@gmail.com', password:'#123456#Mm' },
+];
+const ADMIN_EMAILS = ADMIN_CREDENTIALS.map(a=>a.email);
+
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Hardcoded admin credentials
-const ADMIN_CREDENTIALS = [
-  { email: 'sumudinnovation4@gmail.com',  password: '#123456#Mm' },
-  { email: 'opemuhammad35@gmail.com',     password: '#123456#Mm' },
-  { email: 'sumudinnovations4@gmail.com', password: '#123456#Mm' },
-];
-const ADMIN_EMAILS = ADMIN_CREDENTIALS.map(a => a.email);
-
 let adminUser = null;
-let allRunners = [];
-let allOrders = [];
-let selectedOrderId = null;
-let selectedRunnerId = null;
-let adminMap = null;
-let runnerMapMarkers = {};
+let allRunners = [], allOrders = [], allPayments = [];
+let selectedOrderId = null, selectedRunnerId = null;
+let confirmAction = null;
+let adminMap = null, adminMapMarkers = {};
 
-// ─── AUTH ─────────────────────────────────────────────────────────────────────
-function showAlert(id, msg, type='error') {
-  const el = document.getElementById(id);
-  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
-  setTimeout(() => el.innerHTML='', 4000);
+// ─── AUTH ────────────────────────────────────────────────────────────────────
+function showAlert(id, msg, type='error'){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.innerHTML=`<div class="alert al-${type}">${msg}</div>`;
+  if(type!=='info') setTimeout(()=>{ if(el) el.innerHTML=''; },5000);
 }
 
-async function adminLogin() {
-  const email = document.getElementById('admin-email').value.trim().toLowerCase();
-  const pass = document.getElementById('admin-pass').value;
-  if (!email||!pass) return showAlert('login-alert','Enter credentials.');
-  const match = ADMIN_CREDENTIALS.find(a => a.email.toLowerCase() === email && a.password === pass);
-  if (!match) return showAlert('login-alert','Invalid email or password. Access denied.');
-  showAlert('login-alert','Authenticating...','info');
+async function adminLogin(){
+  const email=document.getElementById('ae').value.trim().toLowerCase();
+  const pass=document.getElementById('ap').value;
+  if(!email||!pass) return showAlert('la','Enter your credentials.');
+  const match=ADMIN_CREDENTIALS.find(a=>a.email.toLowerCase()===email && a.password===pass);
+  if(!match) return showAlert('la','Invalid credentials. Access denied.');
+  showAlert('la','Authenticating...','info');
   try {
-    const { data, error } = await sb.auth.signInWithPassword({ email: match.email, password: match.password });
-    if (error) {
-      if (error.message.includes('Invalid login') || error.message.includes('not found') || error.message.includes('credentials')) {
-        const { error: signUpErr } = await sb.auth.signUp({ email: match.email, password: match.password });
-        if (signUpErr && !signUpErr.message.includes('already registered')) throw signUpErr;
-        const { data: retryData, error: retryErr } = await sb.auth.signInWithPassword({ email: match.email, password: match.password });
-        if (retryErr) throw retryErr;
-        adminUser = retryData.user;
-      } else { throw error; }
-    } else {
-      adminUser = data.user;
+    let { data, error } = await sb.auth.signInWithPassword({ email:match.email, password:match.password });
+    if(error){
+      if(error.message.includes('Invalid')||error.message.includes('credentials')||error.message.includes('not found')){
+        await sb.auth.signUp({ email:match.email, password:match.password });
+        const retry = await sb.auth.signInWithPassword({ email:match.email, password:match.password });
+        if(retry.error) throw retry.error;
+        data = retry.data;
+      } else throw error;
     }
+    adminUser = data.user;
+    document.getElementById('admin-name-display').textContent = match.email.split('@')[0];
     document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').classList.add('visible');
+    document.getElementById('app').classList.add('on');
     loadAll();
     subscribeRealtime();
-  } catch(e) { showAlert('login-alert', e.message || 'Login failed.'); }
+  } catch(e){ showAlert('la', e.message||'Login failed.'); }
 }
 
-async function adminLogout() {
-  await sb.auth.signOut();
-  location.reload();
-}
+async function adminLogout(){ await sb.auth.signOut(); location.reload(); }
 
-// ─── NAV ──────────────────────────────────────────────────────────────────────
-function showPanel(name) {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById(`panel-${name}`).classList.add('active');
   document.querySelector(`[data-panel="${name}"]`).classList.add('active');
-  if (name === 'map') initAdminMap();
+  if(name==='map') initAdminMap();
+  if(name==='payments') loadPaymentsPanel('unpaid');
 }
+
+function setFilter(val){ document.getElementById('runner-filter').value=val; applyRunnerFilter(); }
 
 // ─── LOAD DATA ────────────────────────────────────────────────────────────────
-async function loadAll() {
-  await Promise.all([loadRunners(), loadOrders()]);
+async function loadAll(){
+  await Promise.all([loadRunners(), loadOrders(), loadPayments()]);
   updateStats();
-  renderRecentApplications();
+  renderOverview();
 }
 
-async function loadRunners() {
-  const { data } = await sb.from('runners').select('*').order('created_at', {ascending:false});
-  allRunners = data || [];
-  renderRunners(allRunners);
+async function loadRunners(){
+  const { data } = await sb.from('runners').select('*').order('created_at',{ascending:false});
+  allRunners = data||[];
+  applyRunnerFilter();
   const pending = allRunners.filter(r=>r.status==='pending').length;
-  document.getElementById('pending-badge').textContent = pending||'';
-  document.getElementById('pending-badge').style.display = pending?'inline':'none';
+  const badge = document.getElementById('pending-badge');
+  badge.textContent=pending; badge.style.display=pending?'inline':'none';
 }
 
-async function loadOrders() {
-  const { data } = await sb.from('orders').select('*').order('created_at',{ascending:false}).limit(100);
-  allOrders = data || [];
-  renderOrders(allOrders);
+async function loadOrders(){
+  const { data } = await sb.from('orders').select('*').order('created_at',{ascending:false}).limit(200);
+  allOrders = data||[];
+  applyOrderFilter();
 }
 
-function updateStats() {
-  document.getElementById('stat-runners').textContent = allRunners.length;
-  document.getElementById('stat-pending').textContent = allRunners.filter(r=>r.status==='pending').length;
-  document.getElementById('stat-orders').textContent = allOrders.filter(o=>o.status==='picked_up').length;
-  const today = new Date().toDateString();
-  document.getElementById('stat-delivered').textContent = allOrders.filter(o=>o.status==='delivered' && new Date(o.updated_at).toDateString()===today).length;
+async function loadPayments(){
+  const { data } = await sb.from('payments').select('*').order('created_at',{ascending:false});
+  allPayments = data||[];
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────────────
+function updateStats(){
+  document.getElementById('st-total').textContent = allRunners.length;
+  document.getElementById('st-pending').textContent = allRunners.filter(r=>r.status==='pending').length;
+  document.getElementById('st-orders').textContent = allOrders.filter(o=>o.status==='picked_up').length;
+  const unpaid = allRunners.reduce((s,r)=>s+((r.earnings||0)-(r.paid_earnings||0)),0);
+  document.getElementById('st-unpaid').textContent = '₦'+unpaid.toLocaleString();
+}
+
+// ─── OVERVIEW ─────────────────────────────────────────────────────────────────
+function renderOverview(){
+  // Pending
+  const pending = allRunners.filter(r=>r.status==='pending').slice(0,5);
+  document.getElementById('ov-pending').innerHTML = pending.length
+    ? pending.map(r=>`<tr>
+        <td><div class="td-main">${r.first_name} ${r.last_name}</div><div class="td-sub">${r.email}</div></td>
+        <td style="font-size:.82rem">${shortUni(r.university)}</td>
+        <td style="font-size:.82rem">${r.level||'—'}</td>
+        <td style="font-size:.82rem">${cap(r.transport_type)}</td>
+        <td style="font-size:.78rem;color:var(--muted)">${timeAgo(r.created_at)}</td>
+        <td><div class="action-btns">
+          <button class="btn btn-xs btn-green" onclick="updateStatus('${r.id}','active')">✓ Approve</button>
+          <button class="btn btn-xs btn-red" onclick="confirmDelete(r,'${r.id}','${r.first_name} ${r.last_name}')">Delete</button>
+        </div></td>
+      </tr>`).join('')
+    : `<tr><td colspan="6" class="empty">No pending applications 🎉</td></tr>`;
+
+  // Recent orders
+  const recent = allOrders.slice(0,6);
+  const rm = Object.fromEntries(allRunners.map(r=>[r.id,r]));
+  document.getElementById('ov-orders').innerHTML = recent.length
+    ? recent.map(o=>{
+        const runner=o.runner_id?rm[o.runner_id]:null;
+        return `<tr>
+          <td><div class="td-main">${o.icon||'📦'} ${o.description||'Order'}</div><div class="td-sub">#${o.id.slice(0,8)}</div></td>
+          <td style="font-size:.83rem">${o.seller_name||'—'}</td>
+          <td style="font-size:.83rem">${runner?runner.first_name+' '+runner.last_name:'<span style="color:var(--muted)">Unassigned</span>'}</td>
+          <td style="color:var(--green);font-size:.83rem">₦${(o.runner_pay||0).toLocaleString()}</td>
+          <td><span class="badge ${statusBadge(o.status)}">${statusLabel(o.status)}</span></td>
+        </tr>`;}).join('')
+    : `<tr><td colspan="5" class="empty">No orders yet.</td></tr>`;
 }
 
 // ─── RUNNERS TABLE ────────────────────────────────────────────────────────────
-function filterRunners(status) {
-  const filtered = status==='all' ? allRunners : allRunners.filter(r=>r.status===status);
-  renderRunners(filtered);
+function applyRunnerFilter(){
+  const filter = document.getElementById('runner-filter').value;
+  const search = (document.getElementById('runner-search').value||'').toLowerCase();
+  let list = filter==='all' ? allRunners : allRunners.filter(r=>r.status===filter);
+  if(search) list = list.filter(r=>(r.first_name+' '+r.last_name+' '+(r.university||'')).toLowerCase().includes(search));
+  renderRunnersTable(list);
 }
 
-function renderRunners(runners) {
+function renderRunnersTable(runners){
   const tb = document.getElementById('runners-table');
-  if (!runners.length) { tb.innerHTML='<tr><td colspan="8" class="empty">No runners found.</td></tr>'; return; }
-  tb.innerHTML = runners.map(r => `
-    <tr>
-      <td><div style="font-weight:500">${r.first_name} ${r.last_name}</div><div style="font-size:.75rem;color:var(--muted);margin-top:.15rem;font-family:'DM Mono',monospace">${r.id.slice(0,8)}...</div></td>
-      <td><div>${r.email}</div><div style="color:var(--muted);font-size:.78rem">${r.phone||'—'}</div></td>
-      <td>${r.city||'—'}</td>
-      <td>${capitalize(r.transport_type||'—')}</td>
-      <td style="font-family:'DM Mono',monospace">${r.deliveries||0}</td>
-      <td style="font-family:'DM Mono',monospace;color:var(--green)">₦${(r.earnings||0).toLocaleString()}</td>
-      <td><span class="badge badge-${r.status}">${capitalize(r.status)}</span></td>
-      <td>
-        <div class="action-btns">
-          ${r.status==='pending'?`<button class="btn-xs btn-approve" onclick="updateRunnerStatus('${r.id}','active')">✓ Approve</button>`:''}
-          ${r.status==='active'?`<button class="btn-xs btn-suspend" onclick="updateRunnerStatus('${r.id}','suspended')">Suspend</button>`:''}
-          ${r.status==='suspended'?`<button class="btn-xs btn-approve" onclick="updateRunnerStatus('${r.id}','active')">Re-activate</button>`:''}
-        </div>
-      </td>
-    </tr>`).join('');
-}
-
-async function updateRunnerStatus(id, status) {
-  await sb.from('runners').update({status}).eq('id',id);
-  await loadRunners();
-  updateStats();
-}
-
-function renderRecentApplications() {
-  const pending = allRunners.filter(r=>r.status==='pending').slice(0,5);
-  const tb = document.getElementById('recent-applications');
-  if (!pending.length) { tb.innerHTML='<tr><td colspan="6" class="empty" style="padding:1.5rem">No pending applications 🎉</td></tr>'; return; }
-  tb.innerHTML = pending.map(r => `
-    <tr>
-      <td><div style="font-weight:500">${r.first_name} ${r.last_name}</div></td>
-      <td>${r.city||'—'}</td>
-      <td>${capitalize(r.transport_type||'—')}</td>
-      <td style="font-size:.78rem;color:var(--muted)">${timeAgo(r.created_at)}</td>
-      <td><span class="badge badge-pending">Pending</span></td>
-      <td><button class="btn-xs btn-approve" onclick="updateRunnerStatus('${r.id}','active')">✓ Approve</button></td>
-    </tr>`).join('');
-}
-
-// ─── ORDERS TABLE ─────────────────────────────────────────────────────────────
-function filterOrders(status) {
-  const filtered = status==='all' ? allOrders : allOrders.filter(o=>o.status===status);
-  renderOrders(filtered);
-}
-
-function renderOrders(orders) {
-  const tb = document.getElementById('orders-table');
-  if (!orders.length) { tb.innerHTML='<tr><td colspan="7" class="empty">No orders found.</td></tr>'; return; }
-  const runnerMap = Object.fromEntries(allRunners.map(r=>[r.id,r]));
-  tb.innerHTML = orders.map(o => {
-    const runner = o.runner_id ? runnerMap[o.runner_id] : null;
+  if(!runners.length){ tb.innerHTML=`<tr><td colspan="9" class="empty">No runners found.</td></tr>`; return; }
+  tb.innerHTML = runners.map(r=>{
+    const unpaid=(r.earnings||0)-(r.paid_earnings||0);
     return `<tr>
-      <td><div style="font-weight:500">${o.description||'Order'}</div><div style="font-size:.74rem;color:var(--muted);font-family:'DM Mono',monospace">#${o.id.slice(0,8)}</div></td>
-      <td>${o.seller_name||'—'}</td>
-      <td style="font-size:.83rem;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.delivery_address||'—'}</td>
-      <td style="color:var(--green);font-family:'DM Mono',monospace">₦${(o.runner_pay||0).toLocaleString()}</td>
-      <td>${runner?`<div style="font-size:.85rem">${runner.first_name} ${runner.last_name}</div>`:`<span style="color:var(--muted);font-size:.82rem">Unassigned</span>`}</td>
-      <td><span class="badge badge-${o.status==='ready'?'ready':o.status==='picked_up'?'assigned':'delivered'}">${statusLabel(o.status)}</span></td>
       <td>
-        ${o.status==='ready'&&!o.runner_id?`<button class="btn-xs btn-assign" onclick="openAssign('${o.id}','${o.description||'Order'}')">Assign Runner</button>`:''}
-        ${o.status==='picked_up'?`<button class="btn-xs btn-approve" onclick="markDelivered('${o.id}')">Mark Delivered</button>`:''}
+        <div class="td-main">${r.first_name} ${r.last_name}</div>
+        <div class="td-sub" style="font-family:'DM Mono',monospace">${r.matric_number||'—'}</div>
       </td>
+      <td style="font-size:.8rem;max-width:160px">${shortUni(r.university)}<br/><span style="color:var(--muted);font-size:.74rem">${r.level||''}</span></td>
+      <td><div style="font-size:.82rem">${r.email}</div><div style="font-size:.76rem;color:var(--muted)">${r.phone||'—'}</div></td>
+      <td style="font-size:.82rem">${cap(r.transport_type||'—')}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:.85rem">${r.deliveries||0}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:.85rem;color:var(--green)">₦${(r.earnings||0).toLocaleString()}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:.85rem;color:var(--accent2)">₦${unpaid.toLocaleString()}</td>
+      <td><span class="badge ${statusBadge2(r.status)}">${cap(r.status)}</span></td>
+      <td><div class="action-btns">
+        ${r.status==='pending'?`<button class="btn btn-xs btn-green" onclick="updateStatus('${r.id}','active')">✓ Approve</button>`:''}
+        ${r.status==='active'?`<button class="btn btn-xs btn-orange" onclick="updateStatus('${r.id}','suspended')">Restrict</button>`:''}
+        ${r.status==='suspended'?`<button class="btn btn-xs btn-green" onclick="updateStatus('${r.id}','active')">Restore</button>`:''}
+        ${r.status!=='banned'?`<button class="btn btn-xs btn-red" onclick="triggerConfirm('ban','${r.id}','${r.first_name} ${r.last_name}')">Ban</button>`:''}
+        ${r.status==='banned'?`<button class="btn btn-xs btn-orange" onclick="updateStatus('${r.id}','active')">Unban</button>`:''}
+        <button class="btn btn-xs btn-ghost" onclick="openRunnerDetail('${r.id}')">View</button>
+        <button class="btn btn-xs btn-red" style="background:rgba(244,63,94,.15);color:var(--red);border:1px solid rgba(244,63,94,.3)" onclick="triggerConfirm('delete','${r.id}','${r.first_name} ${r.last_name}')">Delete</button>
+      </div></td>
     </tr>`;}).join('');
 }
 
-async function markDelivered(orderId) {
-  const order = allOrders.find(o=>o.id===orderId);
-  await sb.from('orders').update({status:'delivered', updated_at: new Date().toISOString()}).eq('id',orderId);
-  if (order?.runner_id && order?.runner_pay) {
-    const runner = allRunners.find(r=>r.id===order.runner_id);
-    if (runner) {
-      await sb.from('runners').update({ earnings: (runner.earnings||0)+order.runner_pay, deliveries: (runner.deliveries||0)+1 }).eq('id', runner.id);
+async function updateStatus(id, status){
+  await sb.from('runners').update({status}).eq('id',id);
+  await loadRunners(); updateStats(); renderOverview();
+}
+
+function triggerConfirm(type, id, name){
+  confirmAction = { type, id, name };
+  const icons={ ban:'🚫', delete:'🗑️', unban:'✅' };
+  const msgs={ 
+    ban:`Ban <strong>${name}</strong>? They will not be able to log in.`,
+    delete:`Permanently delete <strong>${name}</strong>'s account? This cannot be undone and they will never be able to log in again.`,
+  };
+  const colors={ ban:'var(--red)', delete:'var(--red)' };
+  const labels={ ban:'Ban Runner', delete:'Delete Account' };
+  document.getElementById('confirm-icon').textContent = icons[type]||'⚠️';
+  document.getElementById('confirm-title').textContent = type==='delete'?'Delete Account?':`Ban Runner?`;
+  document.getElementById('confirm-msg').innerHTML = msgs[type]||'Are you sure?';
+  const btn = document.getElementById('confirm-btn');
+  btn.textContent = labels[type]||'Confirm';
+  btn.style.background = colors[type]||'var(--red)';
+  btn.style.color='#fff'; btn.style.border='none';
+  document.getElementById('modal-confirm').classList.add('open');
+}
+
+async function runConfirm(){
+  if(!confirmAction) return;
+  const { type, id } = confirmAction;
+  closeModal('modal-confirm');
+  if(type==='ban'){ await updateStatus(id,'banned'); }
+  else if(type==='delete'){
+    // Set status to deleted so login is blocked, then remove the row
+    await sb.from('runners').update({status:'banned'}).eq('id',id);
+    await sb.from('runners').delete().eq('id',id);
+    await loadRunners(); updateStats(); renderOverview();
+  }
+  confirmAction=null;
+}
+
+// ─── RUNNER DETAIL ────────────────────────────────────────────────────────────
+function openRunnerDetail(id){
+  const r = allRunners.find(x=>x.id===id);
+  if(!r) return;
+  const unpaid=(r.earnings||0)-(r.paid_earnings||0);
+  const runnerOrders = allOrders.filter(o=>o.runner_id===id);
+  document.getElementById('runner-detail-content').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem">
+      <div class="sc"><div class="sc-label">Total Earned</div><div class="sc-val" style="font-size:1.5rem">₦${(r.earnings||0).toLocaleString()}</div></div>
+      <div class="sc"><div class="sc-label">Unpaid Balance</div><div class="sc-val" style="font-size:1.5rem;color:var(--accent2)">₦${unpaid.toLocaleString()}</div></div>
+    </div>
+    <table style="margin-bottom:1.2rem">
+      <tr><td style="color:var(--muted);font-size:.8rem;padding:.4rem 0">Full Name</td><td style="font-weight:500;padding:.4rem 0">${r.first_name} ${r.last_name}</td></tr>
+      <tr><td style="color:var(--muted);font-size:.8rem;padding:.4rem 0">Email</td><td style="padding:.4rem 0">${r.email}</td></tr>
+      <tr><td style="color:var(--muted);font-size:.8rem;padding:.4rem 0">Phone</td><td style="padding:.4rem 0">${r.phone||'—'}</td></tr>
+      <tr><td style="color:var(--muted);font-size:.8rem;padding:.4rem 0">University</td><td style="padding:.4rem 0;font-size:.85rem">${r.university||'—'}</td></tr>
+      <tr><td style="color:var(--muted);font-size:.8rem;padding:.4rem 0">Matric No.</td><td style="padding:.4rem 0;font-family:'DM Mono',monospace">${r.matric_number||'—'}</td></tr>
+      <tr><td style="color:var(--muted);font-size:.8rem;padding:.4rem 0">Level</td><td style="padding:.4rem 0">${r.level||'—'}</td></tr>
+      <tr><td style="color:var(--muted);font-size:.8rem;padding:.4rem 0">Transport</td><td style="padding:.4rem 0">${cap(r.transport_type||'—')}</td></tr>
+      <tr><td style="color:var(--muted);font-size:.8rem;padding:.4rem 0">Status</td><td style="padding:.4rem 0"><span class="badge ${statusBadge2(r.status)}">${cap(r.status)}</span></td></tr>
+      <tr><td style="color:var(--muted);font-size:.8rem;padding:.4rem 0">Applied</td><td style="padding:.4rem 0;font-size:.82rem">${new Date(r.created_at).toLocaleDateString('en-NG',{dateStyle:'medium'})}</td></tr>
+    </table>
+    ${r.bio?`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;font-size:.85rem;color:var(--muted);margin-bottom:1.2rem">"${r.bio}"</div>`:''}
+    <div style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;margin-bottom:.6rem">Orders (${runnerOrders.length})</div>
+    ${runnerOrders.slice(0,5).map(o=>`<div style="display:flex;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.83rem">
+      <span>${o.icon||'📦'} ${o.description||'Order'}</span>
+      <span style="color:var(--green)">₦${(o.runner_pay||0).toLocaleString()}</span>
+    </div>`).join('')||'<div style="color:var(--muted);font-size:.83rem">No deliveries yet.</div>'}
+    <div style="display:flex;gap:.6rem;margin-top:1.4rem;flex-wrap:wrap">
+      ${r.status==='pending'?`<button class="btn btn-green" onclick="updateStatus('${r.id}','active');closeModal('modal-runner')">✓ Approve</button>`:''}
+      ${r.status==='active'?`<button class="btn btn-orange" onclick="updateStatus('${r.id}','suspended');closeModal('modal-runner')">Restrict</button>`:''}
+      ${r.status==='suspended'?`<button class="btn btn-green" onclick="updateStatus('${r.id}','active');closeModal('modal-runner')">Restore</button>`:''}
+      ${r.status!=='banned'?`<button class="btn btn-red" onclick="closeModal('modal-runner');triggerConfirm('ban','${r.id}','${r.first_name} ${r.last_name}')">Ban</button>`:''}
+      ${r.status==='banned'?`<button class="btn btn-green" onclick="updateStatus('${r.id}','active');closeModal('modal-runner')">Unban</button>`:''}
+      <button class="btn btn-red" style="background:rgba(244,63,94,.15);color:var(--red);border:1px solid rgba(244,63,94,.3)" onclick="closeModal('modal-runner');triggerConfirm('delete','${r.id}','${r.first_name} ${r.last_name}')">Delete Account</button>
+    </div>`;
+  document.getElementById('modal-runner').classList.add('open');
+}
+
+// ─── ORDERS TABLE ─────────────────────────────────────────────────────────────
+function applyOrderFilter(){
+  const f=document.getElementById('order-filter').value;
+  const list=f==='all'?allOrders:allOrders.filter(o=>o.status===f);
+  renderOrdersTable(list);
+}
+
+function renderOrdersTable(orders){
+  const tb=document.getElementById('orders-table');
+  if(!orders.length){ tb.innerHTML=`<tr><td colspan="8" class="empty">No orders found.</td></tr>`; return; }
+  const rm=Object.fromEntries(allRunners.map(r=>[r.id,r]));
+  tb.innerHTML=orders.map(o=>{
+    const runner=o.runner_id?rm[o.runner_id]:null;
+    return `<tr>
+      <td><div class="td-main">${o.icon||'📦'} ${o.description||'Order'}</div><div class="td-sub" style="font-family:'DM Mono',monospace">#${o.id.slice(0,8)}</div></td>
+      <td style="font-size:.83rem">${o.seller_name||'—'}<br/><span style="color:var(--muted);font-size:.75rem">${o.seller_address||''}</span></td>
+      <td style="font-size:.82rem;max-width:140px">${o.delivery_address||'—'}</td>
+      <td style="color:var(--green);font-family:'DM Mono',monospace">₦${(o.runner_pay||0).toLocaleString()}</td>
+      <td style="font-size:.83rem">${runner?`${runner.first_name} ${runner.last_name}`:`<span style="color:var(--muted)">Unassigned</span>`}</td>
+      <td><span class="badge ${statusBadge(o.status)}">${statusLabel(o.status)}</span></td>
+      <td style="font-size:.76rem;color:var(--muted)">${timeAgo(o.created_at)}</td>
+      <td><div class="action-btns">
+        ${o.status==='ready'&&!o.runner_id?`<button class="btn btn-xs btn-primary" onclick="openAssign('${o.id}','${(o.description||'Order').replace(/'/g,"\\'")}')">Assign</button>`:''}
+        ${o.status==='picked_up'?`<button class="btn btn-xs btn-green" onclick="markDelivered('${o.id}')">Delivered ✓</button>`:''}
+        ${o.status!=='delivered'?`<button class="btn btn-xs btn-ghost" onclick="cancelOrder('${o.id}')">Cancel</button>`:''}
+      </div></td>
+    </tr>`;}).join('');
+}
+
+async function markDelivered(id){
+  const order=allOrders.find(o=>o.id===id);
+  await sb.from('orders').update({status:'delivered',updated_at:new Date().toISOString()}).eq('id',id);
+  if(order?.runner_id&&order?.runner_pay){
+    const runner=allRunners.find(r=>r.id===order.runner_id);
+    if(runner){
+      await sb.from('runners').update({
+        earnings:(runner.earnings||0)+order.runner_pay,
+        deliveries:(runner.deliveries||0)+1
+      }).eq('id',runner.id);
     }
   }
   await loadAll();
 }
 
-// ─── ASSIGN MODAL ─────────────────────────────────────────────────────────────
-function openAssign(orderId, label) {
-  selectedOrderId = orderId; selectedRunnerId = null;
-  document.getElementById('assign-order-label').textContent = label;
-  document.getElementById('assign-overlay').classList.add('open');
-  const activeRunners = allRunners.filter(r=>r.status==='active');
-  const list = document.getElementById('assign-runners-list');
-  if (!activeRunners.length) { list.innerHTML='<div class="empty">No active runners available.</div>'; return; }
-  list.innerHTML = activeRunners.map(r=>`
-    <div class="runner-option" id="ro-${r.id}" onclick="selectRunner('${r.id}')">
-      <div class="runner-dot"></div>
-      <div class="runner-info">
-        <div class="runner-name">${r.first_name} ${r.last_name}</div>
-        <div class="runner-meta">${r.city||'—'} · ${capitalize(r.transport_type||'—')} · ${r.deliveries||0} deliveries</div>
-      </div>
-      <div class="runner-dist">${r.lat?'📍 Online':'Offline'}</div>
-    </div>`).join('');
+async function cancelOrder(id){
+  await sb.from('orders').update({status:'cancelled',updated_at:new Date().toISOString()}).eq('id',id);
+  await loadOrders(); applyOrderFilter();
 }
 
-function selectRunner(id) {
-  document.querySelectorAll('.runner-option').forEach(el=>el.classList.remove('selected'));
-  document.getElementById(`ro-${id}`)?.classList.add('selected');
-  selectedRunnerId = id;
+// ─── ASSIGN ───────────────────────────────────────────────────────────────────
+function openAssign(orderId, label){
+  selectedOrderId=orderId; selectedRunnerId=null;
+  document.getElementById('assign-order-label').textContent=label;
+  const active=allRunners.filter(r=>r.status==='active');
+  document.getElementById('assign-list').innerHTML=active.length
+    ? active.map(r=>`
+        <div class="runner-opt" id="ro-${r.id}" onclick="selectAssignRunner('${r.id}')">
+          <div class="r-dot"></div>
+          <div class="r-info">
+            <div class="r-name">${r.first_name} ${r.last_name}</div>
+            <div class="r-meta">${shortUni(r.university)} · ${cap(r.transport_type||'—')} · ${r.deliveries||0} deliveries</div>
+          </div>
+          <div style="font-size:.78rem;color:var(--accent2)">${r.lat?'📍 Online':'Offline'}</div>
+        </div>`).join('')
+    : '<div class="empty">No active runners available.</div>';
+  document.getElementById('modal-assign').classList.add('open');
 }
 
-async function confirmAssign() {
-  if (!selectedRunnerId) return alert('Please select a runner.');
-  await sb.from('orders').update({ runner_id: selectedRunnerId, status:'picked_up', accepted_at: new Date().toISOString() }).eq('id',selectedOrderId);
-  closeAssign();
+function selectAssignRunner(id){
+  document.querySelectorAll('.runner-opt').forEach(e=>e.classList.remove('sel'));
+  document.getElementById(`ro-${id}`)?.classList.add('sel');
+  selectedRunnerId=id;
+}
+
+async function confirmAssign(){
+  if(!selectedRunnerId) return alert('Select a runner first.');
+  await sb.from('orders').update({runner_id:selectedRunnerId,status:'picked_up',accepted_at:new Date().toISOString()}).eq('id',selectedOrderId);
+  closeModal('modal-assign');
   await loadAll();
 }
 
-function closeAssign() { document.getElementById('assign-overlay').classList.remove('open'); }
+// ─── CREATE ORDER ─────────────────────────────────────────────────────────────
+function openCreateOrder(){
+  // Populate runner dropdown
+  const sel=document.getElementById('co-runner');
+  sel.innerHTML='<option value="">Leave unassigned</option>';
+  allRunners.filter(r=>r.status==='active').forEach(r=>{
+    const o=document.createElement('option');
+    o.value=r.id; o.textContent=`${r.first_name} ${r.last_name} — ${shortUni(r.university)}`;
+    sel.appendChild(o);
+  });
+  document.getElementById('modal-create-order').classList.add('open');
+}
+
+async function createOrder(){
+  const desc=document.getElementById('co-desc').value.trim();
+  const icon=document.getElementById('co-icon').value.trim()||'📦';
+  const seller=document.getElementById('co-seller').value.trim();
+  const sellerAddr=document.getElementById('co-seller-addr').value.trim();
+  const delivery=document.getElementById('co-delivery').value.trim();
+  const customer=document.getElementById('co-customer').value.trim();
+  const customerPhone=document.getElementById('co-customer-phone').value.trim();
+  const pay=parseFloat(document.getElementById('co-pay').value)||0;
+  const km=parseFloat(document.getElementById('co-km').value)||null;
+  const mins=parseInt(document.getElementById('co-mins').value)||null;
+  const university=document.getElementById('co-university').value;
+  const runnerId=document.getElementById('co-runner').value||null;
+  if(!desc||!seller||!delivery) return showAlert('co-alert','Fill in description, seller and delivery address.');
+  showAlert('co-alert','Creating...','info');
+  const { error } = await sb.from('orders').insert({
+    description:desc, icon, seller_name:seller, seller_address:sellerAddr,
+    delivery_address:delivery, customer_name:customer, customer_phone:customerPhone,
+    runner_pay:pay, distance_km:km, estimated_minutes:mins, university,
+    runner_id:runnerId, status:runnerId?'picked_up':'ready',
+    accepted_at:runnerId?new Date().toISOString():null,
+    created_by:'admin'
+  });
+  if(error) return showAlert('co-alert','Error: '+error.message);
+  showAlert('co-alert','Order created!','success');
+  setTimeout(()=>{ closeModal('modal-create-order'); loadAll(); },1200);
+  // Reset form
+  ['co-desc','co-icon','co-seller','co-seller-addr','co-delivery','co-customer','co-customer-phone','co-pay','co-km','co-mins'].forEach(id=>{ document.getElementById(id).value=''; });
+}
+
+// ─── PAYMENTS ─────────────────────────────────────────────────────────────────
+function showPayTab(tab, el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  loadPaymentsPanel(tab);
+}
+
+async function loadPaymentsPanel(tab){
+  const el=document.getElementById('pay-content');
+  el.innerHTML='<div class="spinner"></div>';
+  if(tab==='unpaid'){
+    const runners=allRunners.filter(r=>r.status==='active'&&((r.earnings||0)-(r.paid_earnings||0))>0);
+    if(!runners.length){ el.innerHTML='<div class="empty">All runners are paid up! 🎉</div>'; return; }
+    el.innerHTML=`
+      <div class="sec">
+        <div class="sec-head"><h2>Runners with Unpaid Balance</h2>
+          <button class="btn btn-green" onclick="openPayWeek()">💰 Pay Week</button>
+        </div>
+        <table><thead><tr><th>Runner</th><th>University</th><th>Deliveries</th><th>Total Earned</th><th>Unpaid Balance</th></tr></thead>
+        <tbody>${runners.map(r=>{
+          const unpaid=(r.earnings||0)-(r.paid_earnings||0);
+          return `<tr>
+            <td><div class="td-main">${r.first_name} ${r.last_name}</div><div class="td-sub">${r.email}</div></td>
+            <td style="font-size:.81rem">${shortUni(r.university)}</td>
+            <td style="font-family:'DM Mono',monospace">${r.deliveries||0}</td>
+            <td style="color:var(--green);font-family:'DM Mono',monospace">₦${(r.earnings||0).toLocaleString()}</td>
+            <td style="color:var(--accent2);font-family:'DM Mono',monospace;font-weight:600">₦${unpaid.toLocaleString()}</td>
+          </tr>`;}).join('')}</tbody>
+        </table>
+      </div>`;
+  } else {
+    const { data:pays } = await sb.from('payments').select('*').order('created_at',{ascending:false}).limit(100);
+    if(!pays||!pays.length){ el.innerHTML='<div class="empty">No payment history yet.</div>'; return; }
+    const rm=Object.fromEntries(allRunners.map(r=>[r.id,r]));
+    el.innerHTML=`<div class="sec"><table>
+      <thead><tr><th>Runner</th><th>Week</th><th>Deliveries</th><th>Amount</th><th>Paid On</th><th>Status</th></tr></thead>
+      <tbody>${pays.map(p=>{
+        const r=rm[p.runner_id];
+        return `<tr>
+          <td><div class="td-main">${r?r.first_name+' '+r.last_name:'Unknown'}</div></td>
+          <td style="font-size:.83rem">${p.week_label||'—'}</td>
+          <td style="font-family:'DM Mono',monospace">${p.deliveries_count||0}</td>
+          <td style="color:var(--green);font-family:'DM Mono',monospace;font-weight:600">₦${(p.amount||0).toLocaleString()}</td>
+          <td style="font-size:.78rem;color:var(--muted)">${p.paid_at?new Date(p.paid_at).toLocaleDateString('en-NG',{dateStyle:'medium'}):'—'}</td>
+          <td><span class="badge ${p.paid?'b-paid':'b-unpaid'}">${p.paid?'Paid':'Pending'}</span></td>
+        </tr>`;}).join('')}
+      </tbody></table></div>`;
+  }
+}
+
+function openPayWeek(){
+  const today=new Date();
+  document.getElementById('pw-label').value=`Week of ${today.toLocaleDateString('en-NG',{month:'long',day:'numeric',year:'numeric'})}`;
+  const runners=allRunners.filter(r=>r.status==='active'&&((r.earnings||0)-(r.paid_earnings||0))>0);
+  document.getElementById('pw-runners-list').innerHTML=runners.length
+    ? runners.map(r=>{
+        const unpaid=(r.earnings||0)-(r.paid_earnings||0);
+        return `<label style="display:flex;align-items:center;gap:.8rem;padding:.8rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:.5rem;cursor:pointer">
+          <input type="checkbox" value="${r.id}" data-amount="${unpaid}" data-deliveries="${r.deliveries||0}" style="width:16px;height:16px;accent-color:var(--accent)"/>
+          <div style="flex:1">
+            <div style="font-weight:500;font-size:.88rem">${r.first_name} ${r.last_name}</div>
+            <div style="font-size:.76rem;color:var(--muted)">${shortUni(r.university)} · ${r.deliveries||0} deliveries</div>
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-weight:700;color:var(--green)">₦${unpaid.toLocaleString()}</div>
+        </label>`;}).join('')
+    : '<div class="empty">No runners with unpaid balance.</div>';
+  document.getElementById('modal-pay-week').classList.add('open');
+}
+
+async function confirmPayWeek(){
+  const label=document.getElementById('pw-label').value.trim();
+  if(!label) return showAlert('pw-alert','Enter a week label.');
+  const checkboxes=[...document.querySelectorAll('#pw-runners-list input[type=checkbox]:checked')];
+  if(!checkboxes.length) return showAlert('pw-alert','Select at least one runner.');
+  showAlert('pw-alert','Processing payments...','info');
+  const now=new Date().toISOString();
+  for(const cb of checkboxes){
+    const rid=cb.value;
+    const amount=parseFloat(cb.dataset.amount)||0;
+    const deliveries=parseInt(cb.dataset.deliveries)||0;
+    const runner=allRunners.find(r=>r.id===rid);
+    if(!runner) continue;
+    await sb.from('payments').insert({ runner_id:rid, week_label:label, amount, deliveries_count:deliveries, paid:true, paid_at:now });
+    await sb.from('runners').update({ paid_earnings:(runner.paid_earnings||0)+amount }).eq('id',rid);
+  }
+  showAlert('pw-alert',`✅ ${checkboxes.length} runner(s) marked as paid!`,'success');
+  setTimeout(()=>{ closeModal('modal-pay-week'); loadAll(); loadPaymentsPanel('paid'); },1500);
+}
 
 // ─── LIVE MAP ─────────────────────────────────────────────────────────────────
-function initAdminMap() {
-  if (adminMap) { refreshMap(); return; }
-  adminMap = L.map('map-container').setView([6.5244, 3.3792], 12);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{ attribution:'&copy; CartoDB', maxZoom:19 }).addTo(adminMap);
+function initAdminMap(){
+  if(adminMap){ refreshMap(); return; }
+  adminMap=L.map('admin-map').setView([6.5244,3.3792],13);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; CartoDB',maxZoom:19}).addTo(adminMap);
   refreshMap();
 }
 
-async function refreshMap() {
-  if (!adminMap) return;
-  const { data: runners } = await sb.from('runners').select('*').eq('status','active').not('lat','is',null);
-  if (!runners) return;
-  // Clear old markers
-  Object.values(runnerMapMarkers).forEach(m=>m.remove());
-  runnerMapMarkers = {};
-  runners.forEach(r => {
-    const icon = L.divIcon({ className:'', html:`<div style="width:14px;height:14px;background:#10b981;border-radius:50%;border:2px solid #fff;box-shadow:0 0 10px #10b981"></div>`, iconSize:[14,14], iconAnchor:[7,7] });
-    const marker = L.marker([r.lat, r.lng], {icon})
-      .addTo(adminMap)
-      .bindPopup(`<b>${r.first_name} ${r.last_name}</b><br/>${r.transport_type} · ${r.city}<br/><small>Last seen: ${timeAgo(r.last_seen)}</small>`);
-    runnerMapMarkers[r.id] = marker;
+async function refreshMap(){
+  if(!adminMap) return;
+  const { data:runners }=await sb.from('runners').select('*').eq('status','active').not('lat','is',null);
+  Object.values(adminMapMarkers).forEach(m=>m.remove());
+  adminMapMarkers={};
+  (runners||[]).forEach(r=>{
+    const icon=L.divIcon({className:'',html:`<div style="width:13px;height:13px;background:#10b981;border-radius:50%;border:2px solid #fff;box-shadow:0 0 10px #10b981"></div>`,iconSize:[13,13],iconAnchor:[6,6]});
+    adminMapMarkers[r.id]=L.marker([r.lat,r.lng],{icon}).addTo(adminMap)
+      .bindPopup(`<b>${r.first_name} ${r.last_name}</b><br/>${r.university||'—'}<br/>${cap(r.transport_type||'—')}<br/><small>Last seen: ${timeAgo(r.last_seen)}</small>`);
   });
 }
 
 // ─── REALTIME ─────────────────────────────────────────────────────────────────
-function subscribeRealtime() {
-  sb.channel('admin-runners').on('postgres_changes',{event:'*',schema:'public',table:'runners'},()=>{ loadRunners(); }).subscribe();
-  sb.channel('admin-orders').on('postgres_changes',{event:'*',schema:'public',table:'orders'},()=>{ loadOrders(); }).subscribe();
+function subscribeRealtime(){
+  sb.channel('a-runners').on('postgres_changes',{event:'*',schema:'public',table:'runners'},()=>loadRunners()).subscribe();
+  sb.channel('a-orders').on('postgres_changes',{event:'*',schema:'public',table:'orders'},()=>loadOrders()).subscribe();
 }
 
-// ─── UTILS ───────────────────────────────────────────────────────────────────
-function capitalize(s) { return s?s.charAt(0).toUpperCase()+s.slice(1):''; }
-function statusLabel(s) { return {ready:'Ready',picked_up:'In Transit',delivered:'Delivered',pending:'Pending'}[s]||s; }
-function timeAgo(ts) {
-  if (!ts) return '—';
-  const diff = Date.now()-new Date(ts).getTime();
-  const m = Math.floor(diff/60000);
-  if (m<1) return 'just now';
-  if (m<60) return `${m}m ago`;
-  const h = Math.floor(m/60);
-  if (h<24) return `${h}h ago`;
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function cap(s){ return s?s.charAt(0).toUpperCase()+s.slice(1):''; }
+function shortUni(u){ if(!u) return '—'; const parts=u.split(','); return parts[0].length>28?parts[0].slice(0,28)+'…':parts[0]; }
+function statusBadge(s){ return {ready:'b-ready',picked_up:'b-picked',delivered:'b-delivered',cancelled:'b-banned',pending:'b-pending'}[s]||'b-pending'; }
+function statusBadge2(s){ return {pending:'b-pending',active:'b-active',suspended:'b-suspended',banned:'b-banned'}[s]||'b-pending'; }
+function statusLabel(s){ return {ready:'Ready',picked_up:'In Transit',delivered:'Delivered',cancelled:'Cancelled',pending:'Pending'}[s]||s; }
+function timeAgo(ts){
+  if(!ts) return '—';
+  const m=Math.floor((Date.now()-new Date(ts).getTime())/60000);
+  if(m<1) return 'just now'; if(m<60) return `${m}m ago`;
+  const h=Math.floor(m/60); if(h<24) return `${h}h ago`;
   return `${Math.floor(h/24)}d ago`;
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-(async () => {
-  const { data } = await sb.auth.getSession();
-  if (data?.session?.user && ADMIN_EMAILS.includes(data.session.user.email)) {
-    adminUser = data.session.user;
+(async()=>{
+  const { data }=await sb.auth.getSession();
+  if(data?.session?.user && ADMIN_EMAILS.includes(data.session.user.email)){
+    adminUser=data.session.user;
+    document.getElementById('admin-name-display').textContent=data.session.user.email.split('@')[0];
     document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').classList.add('visible');
-    loadAll();
-    subscribeRealtime();
+    document.getElementById('app').classList.add('on');
+    loadAll(); subscribeRealtime();
   }
 })();
 </script>
